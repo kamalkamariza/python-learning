@@ -32,12 +32,19 @@ def get_allKey(request):
 @api_view(['POST', 'GET', ])
 def upload_key(request):
     if request.method == 'POST':
-        serializer = UsersSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        new_user = request.data['user_number']
+        user = Users.objects.all().get(user_number=new_user)
+
+        if user is not None:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            serializer = UsersSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
     else:
         return Response(status=status.HTTP_204_NO_CONTENT)
