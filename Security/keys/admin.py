@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from .models import Users
+from .models import Users, File
 
 
 admin.site.register(Users)
+admin.site.register(File)

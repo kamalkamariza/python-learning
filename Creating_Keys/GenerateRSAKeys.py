@@ -30,12 +30,12 @@ def generate_RSA(bits=2048):
 
     from Crypto.PublicKey import RSA
     new_key = RSA.generate(bits, e=65537)
-    public_key = new_key.publickey().exportKey("PEM")
-    private_key = new_key.exportKey("PEM")
+    public_key = new_key.publickey().exportKey()
+    private_key = new_key.exportKey()
     print ("Public Key\n" + public_key)
-    print ("\n Private Key\n" + private_key)
-    readWriteFile("\n" + public_key)
-    readWriteFile("\n" + private_key)
+    print ("Private Key\n" + private_key)
+    readWriteFile(public_key)
+    readWriteFile(private_key)
     return private_key, public_key
 
 
@@ -45,20 +45,20 @@ def generate_RSA(bits=2048):
 
 
 def readWriteFile(keys):
-    myfile = open('keys.txt', 'a')
+    myfile = open('RSAKeys.txt', 'a')
     myfile.write(keys + "\n")
     myfile.close()
 
 
 def main():
-    print "Security Test"
+    print ("Security Test")
 
 
 if __name__ == '__main__':
     main()
     generate_RSA(2048)
-    generate_AES()
-    myfile = open('keys.txt', 'r')
+    # generate_AES()
+    myfile = open('RSAKeys.txt', 'r')
     text = myfile.read()
     myfile.close()
     print ("File \n" + text)
