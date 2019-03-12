@@ -1,97 +1,763 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from django.shortcuts import render
-from django.views import generic
-from django.http import HttpResponse
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import *
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-import ast
-from base64 import b64decode, b64encode
-import base64
+import requests, json, base64
 import sys
+sys.path.append("../")
+sys.path.insert(0, '/Users/Kamal/Documents/Pycharm/Self-Learning-Django-Python/Security/auth_user')
 
-from .models import Users, File
-from .serializers import UsersSerializer, FileSerializer
+# Create your views here.
+from django.shortcuts import render
+from django.template import loader
+from django.http import HttpResponse
+from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import *
+from .serializers import *
+from django.http import Http404, JsonResponse
+from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser
+from django.conf import settings
+from auth_user.models import MyUser, Device
+from auth_user.serializers import DeviceRecordSerializer
+from keys.models import Keys
+from django.forms.models import model_to_dict
+# from web_message.models import WebIdentityKeyStore, \
+#     WebIdentityKeyStoreModel, WebSignedPreKeyStore, KeyStorageManager
+from axolotl.state.signedprekeyrecord import SignedPreKeyRecord
+from axolotl.state.prekeyrecord import PreKeyRecord
+# from Helper.keypair_helper import *
 import os.path
 
 
-def index(request):
-    return HttpResponse("Connected to keys")
+# def test_generate_prekeys_mobile(request, user):
+#     assert isinstance(user, MyUser)
+#     key_storage = KeyStorageManager(user)
+#     preKeys = key_storage.generate_user_pre_keys()
+#     serialized_prekeys = []
+#     for p in preKeys:
+#         assert isinstance(p, PreKeyRecord)
+#         prekey = KeyStorageManager.dict_from_prekey(p)
+#         serialized_prekeys.append(prekey)
+#         # save the own prekeys also
+#     last_resort_key = KeyStorageManager.generate_last_resort_key()
+#     # prekey_store.storePreKey(last_resort_key.getId(), last_resort_key)
+#     last_resort_key = KeyStorageManager.dict_from_prekey(last_resort_key)
+#     data = {"preKeys": serialized_prekeys,
+#                           "lastResortKey": last_resort_key,
+#                           "signedPreKey": {'publicKey': '', 'signature': '', 'keyId': 0},
+#                           "identityKey": user.get_identity_key()}
+#     return json.dumps(data)
+
+
+
+# class GetWebClientKeys(APIView):
+#     authentication_classes = (EnhancedBasicAuthentication,)
+#     parser_classes = (JSONParser, FormParser, MultiPartParser,)
+#     permission_classes = (IsAuthenticated,)
+#
+#     def get(self, request, username, format=None):
+#         user = request.user
+#         assert isinstance(user, MyUser)
+#         destination_user = MyUser.objects.get(username=username)
+#         if not destination_user.is_active:
+#             raise MyUser.DoesNotExist
+#         targetKeys = self.get_local_keys(username, 2)
+#         if not isinstance(targetKeys, TargetKeys):
+#             return Response(data={'error': 'Target Key not found'}, status=status.HTTP_400_BAD_REQUEST)
+#         device = destination_user.get_web_client()
+#         if device.is_active():
+#             signed_preKeys = device.signedPreKey
+#             prekeys = dict()
+#             if len(targetKeys.keys) > 0:
+#                 for key in targetKeys.keys:
+#                     assert isinstance(key, Keys)
+#                     if key.device_id == device.device_id:
+#                         prekeys = {'keyId': key.key_id, 'publicKey': key.public_key}
+#             if not signed_preKeys:
+#                 signed_prekey_store = WebSignedPreKeyStore(destination_user)
+#                 signed_preKeys = signed_prekey_store.loadSignedPreKeys()[0]
+#                 assert isinstance(signed_preKeys, SignedPreKeyRecord)
+#
+#                 signed_preKeys = {'keyId': signed_preKeys.getId(),
+#                                   'signature': base64.b64encode(signed_preKeys.getSignature()),
+#                                   'publicKey': base64.b64encode(signed_preKeys.getKeyPair().getPublicKey().getPublicKey())}
+#
+#             if signed_preKeys is not None or prekeys is not None:
+#                 mydevice = {'deviceId': device.device_id, 'registrationId': device.registrationId,
+#                  'signedPreKey': signed_preKeys, 'preKey': prekeys}
+#                 encoded_id = request.user.get_web_client_identity_key_for_user(username)
+#                 return Response(data={'identityKey': encoded_id , 'devices': [mydevice]},
+#                                 status=status.HTTP_200_OK)
+#             return Response(data={'message': 'no prekeys and signed prekeys'}, status=400)
+#         return Response(data={'message': 'no active web device'}, status=400)
+#
+#     def get_local_keys(self, username, deviceIdSelector):
+#         destination = MyUser.objects.get(username=username)
+#         if not destination.is_active:
+#             raise MyUser.DoesNotExist
+#         if deviceIdSelector == '*':
+#             pre_keys = self.get_key_by_username(username)
+#             if pre_keys:
+#                 return TargetKeys(destination=destination, keys=pre_keys)
+#             else:
+#                 return None
+#         device_id = deviceIdSelector
+#         devices = destination.data.get('devices', None)
+#         device = None
+#         for d in devices:
+#             if d.get('device_id') == int(device_id):
+#                 device = Device(**d)
+#         if device is None or not device.is_active():
+#             pass
+#             # raise MyUser.DoesNotExist
+#         for i in range(20):
+#             try:
+#                 p_keys = self.get_keys_by_username_and_id(username, device.device_id)
+#                 if p_keys:
+#                     return TargetKeys(destination, p_keys)
+#             except Exception:
+#                 pass
+#         return None
+#
+#
+#     def get_key_by_username(self, username):
+#         my_key_dict = Keys.objects.filter(username=username)\
+#             .distinct('username', 'device_id').order_by('username', 'device_id', 'key_id')
+#         if my_key_dict.count() > 0:
+#             preKeys = list()
+#             for my_key in my_key_dict:
+#                 key_dict = model_to_dict(my_key)
+#                 new_key = Keys(**key_dict)
+#                 preKeys.append(new_key)
+#                 if not my_key.last_resort:
+#                     my_key.delete()
+#
+#             return preKeys
+#         return None
+#
+#     def get_keys_by_username_and_id(self, username, device_id):
+#         preKeys = list()
+#         my_key = Keys.objects.filter(username=username, device_id=device_id).order_by('key_id').first()
+#         if my_key:
+#             key_dict = model_to_dict(my_key)
+#             new_key = Keys(**key_dict)
+#             preKeys.append(new_key)
+#             if not my_key.last_resort:
+#                 my_key.delete()
+#             return preKeys
+#         return None
+
+
+class VerificationOfCode(APIView):
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+
+    def invalidate_old_users(self, user):
+        if user.username == user.email:
+            pass
+        elif user.email:
+            user.username = user.email
+            user.full_phone_number = ' '
+            user.phone_number_country = ' '
+            user.phone_number_raw = ' '
+            user.phone_verified = False
+            user.authenticated_device = None
+            user.save()
+            return True
+        else:
+            user.username = MyUser.get_random_username()
+            user.full_phone_number = ' '
+            user.phone_number_country = ' '
+            user.phone_number_raw = ' '
+            user.change_username_now = True
+            user.phone_verified = False
+            user.authenticated_device = None
+            user.save()
+            return True
+
+    def create_account(self, password, data, phone=None, email=None, username=None, verification_obj=None):
+        if phone is not None:
+            username = phone
+        elif email is not None:
+            username = email
+        else:
+            raise ValueError('username could not be set')
+
+        def create_new_user():
+            user = MyUser.objects.create(username=username, password=hashers.make_password(password))
+            if phone is not None:
+                user.full_phone_number = phone
+                user.phone_number_country = verification_obj.phone_number_country
+                user.phone_number_raw = verification_obj.phone_number_raw
+                user.phone_verified = True
+            if email is not None:
+                user.email = email
+            assert data['signalingKey']
+            assert data['registrationId']
+            assert data['voice']
+
+            newDevice = Device(authToken=password, signalingKey=data.get('signalingKey'),
+                registrationId=data.get('registrationId'), voice=data.get('voice'))
+            # Called set_authentication_credentials to generate hash codes
+            newDevice.set_authentication_credentials()
+            deviceSerializer = DeviceRecordSerializer(newDevice)
+            accountDataSerializer = AccountDataSerializer(data={
+                'full_phone_number': user.full_phone_number,
+                'email': user.email,
+                'devices': [deviceSerializer.data]
+            })
+            user.data = json.dumps(accountDataSerializer.get_initial())
+            user.authenticated_device = json.dumps(deviceSerializer.data)
+            user.save()
+            return user
+        try:
+            # if user exists, we need to change the users' username
+            # and warn him to re-verify his account
+            user = MyUser.objects.get(username=username)
+            succeeded = self.invalidate_old_users(user)
+            if succeeded:
+                user = create_new_user()
+                user.update_directory(username_changed=True)
+                return user
+
+        except MyUser.DoesNotExist:
+            user = create_new_user()
+            user.update_directory()
+            return user
+
+    def post(self, request, format=None):
+
+        auth = authenticate(request)
+        userid = auth[0]
+        authToken = auth[1]
+        phone = None
+        email = None
+
+        request_serializer = DeviceRecordSerializer(data={'signalingKey': request.data.get('signalingKey'),
+                                                          'registrationId': request.data.get('registrationId'),
+                                                          'voice': request.data.get('voice')})
+
+        if request_serializer.is_valid():
+            user = self.create_account(authToken, request_serializer.validated_data, phone=phone,
+                                       email=email, verification_obj=verify_obj)
+            if user:
+                print ('User is created')
+            else:
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK, data={"success": 1})
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=request_serializer.errors)
+
+
+class GetDeviceKeysV2(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, username, device_id, format=None):
+        targetKeys = self.get_local_keys(username, device_id)
+        if not targetKeys:
+            return Response(data={'message': 'prekeys not available'}, status=400)
+        try:
+            destination_user = MyUser.objects.get(username=targetKeys.destination)
+        except MyUser.DoesNotExist:
+            return Response(data={'details': 'Destination User not found'} ,status=status.HTTP_404_NOT_FOUND)
+        devices = list()
+        if not isinstance(targetKeys, TargetKeys):
+            return Response(data={'error': 'Target Key not found'}, status=status.HTTP_400_BAD_REQUEST)
+        for device in destination_user.get_devices():
+            assert isinstance(device, Device)
+            if device.is_active() and ( device_id == '*' or device.device_id == int(device_id)):
+                signed_preKeys = [device.signedPreKey]
+                signed_preKeys = signed_preKeys[0] if len(signed_preKeys) > 0 else None
+                prekeys =  dict()
+                if len(targetKeys.keys) > 0:
+                    for key in targetKeys.keys:
+                        assert isinstance(key, Keys)
+                        if key.device_id == device.device_id:
+                            prekeys = {'keyId': key.key_id , 'publicKey': key.public_key}
+
+                if signed_preKeys is not None or prekeys is not None:
+                    devices.append({'deviceId': device.device_id, 'registrationId': device.registrationId,
+                                    'signedPreKey': signed_preKeys, 'preKey': prekeys})
+                else:
+                    return Response(data={'message': 'no signed prekey or prekeys'}, status=400)
+        if len(devices) == 0:
+            return Response(status=status.HTTP_200_OK)
+        return Response(data={'identityKey': destination_user.get_identity_key(), 'devices': devices},
+                        status=status.HTTP_200_OK)
+
+    def get_local_keys(self, username, deviceIdSelector):
+        destination = MyUser.objects.get(username=username)
+        if not destination.is_active:
+            raise MyUser.DoesNotExist
+        if deviceIdSelector == '*':
+            pre_keys = self.get_key_by_username(username)
+            if pre_keys:
+                return TargetKeys(destination=destination, keys=pre_keys)
+            else:
+                return None
+        device_id = deviceIdSelector
+        devices = destination.data.get('devices', None)
+        device = None
+        for d in devices:
+            if d.get('device_id') == int(device_id):
+                device = Device(**d)
+        if device is None or not device.is_active():
+            pass
+            # raise MyUser.DoesNotExist
+        for i in range(20):
+            try:
+                p_keys = self.get_keys_by_username_and_id(username, device.device_id)
+                if p_keys:
+                    return TargetKeys(destination, p_keys)
+            except Exception:
+                pass
+        return None
+
+    def get_key_by_username(self, username):
+        my_key_dict = Keys.objects.filter(username=username)\
+            .distinct('username', 'device_id').order_by('username', 'device_id', 'key_id')
+        if my_key_dict.count() > 0:
+            preKeys = list()
+            for my_key in my_key_dict:
+                key_dict = model_to_dict(my_key)
+                new_key = Keys(**key_dict)
+                preKeys.append(new_key)
+                if not my_key.last_resort:
+                    my_key.delete()
+
+            return preKeys
+        return None
+
+    def get_keys_by_username_and_id(self, username, device_id):
+        preKeys = list()
+        my_key = Keys.objects.filter(username=username, device_id=device_id).order_by('key_id').first()
+        if my_key:
+            key_dict = model_to_dict(my_key)
+            new_key = Keys(**key_dict)
+            preKeys.append(new_key)
+            if not my_key.last_resort:
+                my_key.delete()
+            return preKeys
+        return None
+
+
+class GetDeviceKeys(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, username, device_id, format=None):
+        targetKeys = self.get_local_keys(username, device_id)
+        if not isinstance(targetKeys, TargetKeys):
+            return Response(data={'error': 'Target Key not found'},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if not targetKeys.keys:
+                return Response('invalid', status=400)
+        except (TypeError, AttributeError) as e:
+            return Response(data={'error': 'Target Keys invalid'},status=status.HTTP_400_BAD_REQUEST)
+        pre_keys = []
+        user = MyUser.objects.get(username=username)
+        for key in targetKeys.keys:
+            device = user.get_device(key.device_id)
+            if device and device.is_active():
+                serializer = PreKeyV1Serializer(data={'keyId':key.key_id,
+                                                      'publicKey': key.public_key,
+                                                      'deviceId':key.device_id,
+                                                      'identityKey': user.data.get('identityKey'),
+                                                      'registrationId': device.registrationId})
+                if serializer.is_valid():
+                    pre_keys.append(serializer.data)
+                else:
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+        if len(pre_keys) > 0:
+            return Response(status=status.HTTP_200_OK, data={'keys': pre_keys})
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': 'no prekey found'})
+
+
+
+    def get_key_by_username(self, username):
+        preKeys = Keys.objects.filter(username=username).distinct().order_by('username', 'device_id', 'key_id')
+        if len(preKeys) > 0:
+            for prekey in preKeys:
+                if not prekey.last_resort:
+                    prekey.delete()
+        return preKeys if preKeys else None
+
+    def get_keys_by_username_and_id(self, username, device_id):
+        preKeys = Keys.objects.filter(username=username, device_id=device_id).order_by('key_id')
+        if len(preKeys)>0:
+            for k in preKeys:
+                if not k.last_resort:
+                    k.delete()
+        else:
+            return None
+        return preKeys
+
+    def get_local_keys(self, username, deviceIdSelector):
+        destination = MyUser.objects.get(username=username)
+        if not destination.is_active:
+            raise MyUser.DoesNotExist
+        if deviceIdSelector == '*':
+            pre_keys = self.get_key_by_username(username)
+            if pre_keys:
+                return TargetKeys(destination=destination, keys=pre_keys)
+            else:
+                return None
+        device_id = deviceIdSelector
+        devices = destination.data.get('devices', None)
+        device = None
+        for d in devices:
+            if d.get('device_id') == int(device_id):
+                device = Device(**d)
+        if device is None or not device.is_active():
+            raise MyUser.DoesNotExist
+        for i in range(20):
+            try:
+                p_keys = self.get_keys_by_username_and_id(username, device.device_id)
+                if p_keys:
+                    return TargetKeys(destination, p_keys)
+            except Exception:
+                pass
+        return None
+
+
+class PreKeysRegistration(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        prekeys = Keys.objects.filter(username=request.user.get_username(),
+                                      device_id=request.user.get_authenticated_device().device_id)
+        return Response(data={'count': prekeys.count()}, status=status.HTTP_200_OK)
+
+
+    def put(self, request, format=None):
+        return self.save_key(request)
+
+    def post(self, request, format=None):
+        return self.save_key(request)
+
+    def save_key(self, request):
+        user = request.user
+        assert isinstance(user, MyUser)
+        device = user.get_authenticated_device()
+        updateAccount = False
+        serializer = PreKeyStateSerializer(data=request.data)
+        if serializer.is_valid():
+            prekeystate = serializer.save()
+            if isinstance(prekeystate, PreKeyState):
+                if not (prekeystate.signedPreKey == device.signedPreKey):
+                    device.signedPreKey = prekeystate.signedPreKey
+                    updateAccount = True
+                if not (prekeystate.identityKey == request.user.get_identity_key()):
+                    user = user.set_identity_key(prekeystate.identityKey)
+                    updateAccount = True
+            if updateAccount:
+                device_serializer = DeviceRecordSerializer(device)
+                try:
+                    user.set_authenticated_device(device, device_serializer.data)
+                except AttributeError, TypeError:
+                    return Response(status=400, data={'error': 'invalid request'})
+                user.save()
+
+            old_key_record = Keys.objects.filter(username=user.get_username(), device_id=device.device_id)
+            if old_key_record.count() > 0:
+                for record in old_key_record:
+                    record.delete()
+
+            for key in prekeystate.preKeys:
+                try:
+                    new_key = Keys(username=user.get_username(), device_id=key.get('deviceId', 1), key_id=key.get('keyId'),
+                               public_key=key.get('publicKey'), last_resort=False)
+                    new_key.save()
+                except:
+                    return Response(status=204, data={"error": key})
+            new_last_resort_key = Keys(username=user.get_username(), device_id=prekeystate.lastResortKey.get('deviceId', 1),
+                                       key_id=prekeystate.lastResortKey.get('keyId'),
+                                       public_key=prekeystate.lastResortKey.get('publicKey'), last_resort=True)
+            new_last_resort_key.save()
+            return Response(status=201)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetKeys(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        prekeys = Keys.objects.filter(username=request.user.get_username(),
+                                      device_id=request.user.get_authenticated_device().device_id)
+        return Response(data={'count': prekeys.count()}, status=status.HTTP_200_OK)
+
+    def put(self, request, format=None):
+        current_user = request.user
+        assert isinstance(current_user, MyUser)
+        device = current_user.get_authenticated_device()
+        if device.device_id and Keys.get_available_keys_count(current_user, device.device_id) > 15:
+            return Response(data={'message': 'you have enough prekeys'}, status=400)
+        updateAccount = False
+        serializer = PreKeyStateSerializerV2(data=request.data)
+        if serializer.is_valid():
+            prekey_object = serializer.save()
+            assert isinstance(prekey_object, PreKeyState)
+            if not (prekey_object.signedPreKey == device.signedPreKey):
+                device.signedPreKey = prekey_object.signedPreKey
+                device_serializer = DeviceRecordSerializer(device)
+                # user.authenticated_device = json.dumps(deviceSerializer.data)
+                try:
+                    current_user.set_authenticated_device(device, device_serializer.data)
+                # except AttributeError, TypeError:
+                #     return Response(status=400, data={'error': 'invalid request'})
+                except Exception as e:
+                    return Response(status=400, data={'error': 'invalid request'})
+                updateAccount = True
+
+            if not (prekey_object.identityKey == request.user.get_identity_key()):
+                current_user.set_identity_key(prekey_object.identityKey)
+                updateAccount = True
+            if updateAccount:
+                current_user.save()
+            Keys.store_keys(current_user.get_username(), device.device_id,
+                            prekey_object.preKeys, prekey_object.lastResortKey)
+            return Response(data=serializer.data ,status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SetWebClientKeys(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        prekey_count = Keys.get_available_keys_count(request.user, 2)
+        return Response(data={'count': prekey_count}, status=status.HTTP_200_OK)
+
+    def put(self, request, format=None):
+        current_user = request.user
+        assert isinstance(current_user, MyUser)
+        device = current_user.get_web_client()
+        # updateAccount = False
+        if Keys.get_available_keys_count(current_user, 2) > 15:
+            return Response(data={'message': 'you have enough prekeys'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PreKeyStateSerializerV2(data=request.data)
+        if serializer.is_valid():
+            prekey_object = serializer.save()
+            assert isinstance(prekey_object, PreKeyState)
+            # if not (prekey_object.signedPreKey == device.signedPreKey):
+            #     device.signedPreKey = prekey_object.signedPreKey
+            #     device_serializer = DeviceRecordSerializer(device)
+            #     # user.authenticated_device = json.dumps(deviceSerializer.data)
+            #     try:
+            #         device.set_as_web_authenticated_client(current_user)
+            #     except AttributeError, TypeError:
+            #         return Response(status=400, data={'error': 'invalid request'})
+            #     updateAccount = True
+            # old_identity_key_model = current_user.web_id_key_store.filter(
+            #     type=WebIdentityKeyStoreModel.IDENTITY_KEY_STORE_IDENTITY_KEYPAIR).first()
+            # identity_store = WebIdentityKeyStore(current_user)
+            # if not (prekey_object.identityKey == identity_store.getIdentityKeyPair().getPublicKey().getPublicKey()):
+            #
+            #     current_user.set_identity_key(prekey_object.identityKey)
+            #     updateAccount = True
+            # if updateAccount:
+            #     current_user.save()
+            Keys.store_keys(current_user.get_username(), device.device_id,
+                            prekey_object.preKeys, prekey_object.lastResortKey)
+            return Response(data=serializer.data ,status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SignedKeyView(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        current_user = request.user
+        device = current_user.get_authenticated_device()
+        signed_pre_key = device.signedPreKey
+        if signed_pre_key:
+            return Response(data={'signature': signed_pre_key}, status=status.HTTP_200_OK)
+        return Response(data={'details': 'signedPreKey not available'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, format=None):
+        current_user = request.user
+        assert isinstance(current_user, MyUser)
+        device = current_user.get_authenticated_device()
+        serializer = SignedPreKeySerializerV2(data=request.data)
+        if serializer.is_valid():
+            signed_prekey = serializer.save()
+            assert isinstance(signed_prekey, SignedPreKeyV2)
+            device.signedPreKey = model_to_dict(signed_prekey)
+            device_serializer = DeviceRecordSerializer(device)
+            try:
+                current_user.set_authenticated_device(device, device_serializer.data)
+            except Exception as e:
+                return Response(status=400, data={'error': 'invalid request'})
+            # except AttributeError, TypeError:
+            #     return Response(status=400, data={'error': 'invalid request'})
+            current_user.update_directory()
+            current_user.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WebSignedKeyView(APIView):
+    authentication_classes = (EnhancedBasicAuthentication,)
+    parser_classes = (JSONParser, FormParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
+        current_user = request.user
+        device = current_user.get_web_client()
+        signed_pre_key = device.signedPreKey
+        if signed_pre_key:
+            return Response(data={'signature': signed_pre_key}, status=status.HTTP_200_OK)
+        return Response(data={'details': 'signedPreKey not available'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, format=None):
+        current_user = request.user
+        assert isinstance(current_user, MyUser)
+        device = current_user.get_web_client()
+        serializer = SignedPreKeySerializerV2(data=request.data)
+        if serializer.is_valid():
+            signed_prekey = serializer.save()
+            assert isinstance(signed_prekey, SignedPreKeyV2)
+            device.signedPreKey = model_to_dict(signed_prekey)
+            device_serializer = DeviceRecordSerializer(device)
+            try:
+                device.set_as_web_authenticated_client(current_user)
+            except Exception as e:
+                return Response(status=400, data={'error': 'invalid request'})
+            # except AttributeError, TypeError:
+            #     return Response(status=400, data={'error': 'invalid request'})
+            current_user.update_directory()
+            current_user.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class GetEncryptedMessage(APIView):
+#     authentication_classes = (EnhancedBasicAuthentication,)
+#     parser_classes = (JSONParser, FormParser, MultiPartParser,)
+#     permission_classes = (IsAuthenticated,)
+#
+#     def get(self, request, username, device_id, format=None):
+#         targetKeys = self.get_local_keys(username, device_id)
+#         if not targetKeys:
+#             return Response(data={'message': 'prekeys not available'}, status=400)
+#         try:
+#             destination_user = MyUser.objects.get(username=targetKeys.destination)
+#         except MyUser.DoesNotExist:
+#             return Response(data={'details': 'Destination User not found'} ,status=status.HTTP_404_NOT_FOUND)
+#         devices = list()
+#         if not isinstance(targetKeys, TargetKeys):
+#             return Response(data={'error': 'Target Key not found'}, status=status.HTTP_400_BAD_REQUEST)
+#         for device in destination_user.get_devices():
+#             assert isinstance(device, Device)
+#             if device.is_active() and ( device_id == '*' or device.device_id == int(device_id)):
+#                 signed_preKeys = [device.signedPreKey]
+#                 signed_preKeys = signed_preKeys[0] if len(signed_preKeys) > 0 else None
+#                 prekeys =  dict()
+#                 if len(targetKeys.keys) > 0:
+#                     for key in targetKeys.keys:
+#                         assert isinstance(key, Keys)
+#                         if key.device_id == device.device_id:
+#                             prekeys = {'keyId': key.key_id , 'publicKey': key.public_key}
+#
+#                 if signed_preKeys is not None or prekeys is not None:
+#                     devices.append({'deviceId': device.device_id, 'registrationId': device.registrationId,
+#                                     'signedPreKey': signed_preKeys, 'preKey': prekeys})
+#                 else:
+#                     return Response(data={'message': 'no signed prekey or prekeys'}, status=400)
+#         if len(devices) == 0:
+#             return Response(status=status.HTTP_200_OK)
+#         return Response(data={'identityKey': destination_user.get_identity_key(), 'devices': devices},
+#                         status=status.HTTP_200_OK)
+#
+#     def get_local_keys(self, username, deviceIdSelector):
+#         destination = MyUser.objects.get(username=username)
+#         if not destination.is_active:
+#             raise MyUser.DoesNotExist
+#         if deviceIdSelector == '*':
+#             pre_keys = self.get_key_by_username(username)
+#             if pre_keys:
+#                 return TargetKeys(destination=destination, keys=pre_keys)
+#             else:
+#                 return None
+#         device_id = deviceIdSelector
+#         devices = destination.data.get('devices', None)
+#         device = None
+#         for d in devices:
+#             if d.get('device_id') == int(device_id):
+#                 device = Device(**d)
+#         if device is None or not device.is_active():
+#             pass
+#             # raise MyUser.DoesNotExist
+#         for i in range(20):
+#             try:
+#                 p_keys = self.get_keys_by_username_and_id(username, device.device_id)
+#                 if p_keys:
+#                     return TargetKeys(destination, p_keys)
+#             except Exception:
+#                 pass
+#         return None
+#
+#     def get_key_by_username(self, username):
+#         my_key_dict = Keys.objects.filter(username=username)\
+#             .distinct('username', 'device_id').order_by('username', 'device_id', 'key_id')
+#         if my_key_dict.count() > 0:
+#             preKeys = list()
+#             for my_key in my_key_dict:
+#                 key_dict = model_to_dict(my_key)
+#                 new_key = Keys(**key_dict)
+#                 preKeys.append(new_key)
+#                 if not my_key.last_resort:
+#                     my_key.delete()
+#
+#             return preKeys
+#         return None
+#
+#     def get_keys_by_username_and_id(self, username, device_id):
+#         preKeys = list()
+#         my_key = Keys.objects.filter(username=username, device_id=device_id).order_by('key_id').first()
+#         if my_key:
+#             key_dict = model_to_dict(my_key)
+#             new_key = Keys(**key_dict)
+#             preKeys.append(new_key)
+#             if not my_key.last_resort:
+#                 my_key.delete()
+#             return preKeys
+#         return None
 
 
 @api_view(['GET', ])
 def get_serverKey(request):
     if request.method == 'GET':
-        exists = os.path.isfile('RSAKeys.txt')
+        exists = os.path.isfile('kaichat.RSA')
         if exists:
             print ("Exist")
-            myfile = open('RSAKeys.txt', 'r')
-            text = myfile.read()
-            myfile.close()
+            # block = get_server_publickey()
 
-            data_file = open("RSAKeys.txt")
-            block = ""
-            found = False
-
-            for line in data_file:
-                if found:
-                    block += line
-                    if line.strip() == "-----END PUBLIC KEY-----":
-                        break
-                else:
-                    if line.strip() == "-----BEGIN PUBLIC KEY-----":
-                        found = True
-                        block = "-----BEGIN PUBLIC KEY-----\n"
-
-            data_file.close()
-            print (block)
-
-            return Response(data={"key": block})
+            # return Response(data={"key": block})
         else:
             print ("Doesnt Exist")
-            return Response(data={"status": "fail"})
 
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+            from Crypto.PublicKey import RSA
+            new_key = RSA.generate(2048, e=65537)
+            public_key = new_key.publickey().exportKey()
+            private_key = new_key.exportKey()
+            print ("Public Key\n" + public_key)
+            print ("Private Key\n" + private_key)
 
+            my_file = open('kaichat.RSA', 'a')
+            my_file.write(public_key + "\n" + private_key)
+            my_file.close()
 
-@api_view(['GET', ])
-def get_serverPrivKey(request):
-    if request.method == 'GET':
-        exists = os.path.isfile('RSAKeys.txt')
-        if exists:
-            print ("Exist")
-            myfile = open('RSAKeys.txt', 'r')
-            text = myfile.read()
-            myfile.close()
-
-            data_file = open("RSAKeys.txt")
-            block = ""
-            found = False
-
-            for line in data_file:
-                if found:
-                    block += line
-                    if line.strip() == "-----END PRIVATE KEY-----":
-                        break
-                else:
-                    if line.strip() == "-----BEGIN PRIVATE KEY-----":
-                        found = True
-                        block = "-----BEGIN PRIVATE KEY-----\n"
-
-            data_file.close()
-            print (block)
-
-            return Response(data={"key": block})
-        else:
-            print ("Doesnt Exist")
-            return Response(data={"status": "fail"})
+            return Response(data={"key": public_key})
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -104,254 +770,6 @@ def get_allKey(request):
         serializer = UsersSerializer(all_keys, many=True)
 
         return Response(serializer.data)
-
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', ])
-def test_key(request):
-    if request.method == 'GET':
-        file_obj = File.objects.get(file_name="file1.jpg")
-        file_key = file_obj.file_key
-
-        print("\nfile_key\n---------\n" + str(file_key))
-        print("type file key" + str(type(file_key)))
-        print ("file Key size" + str(len(file_key)) + "\n")
-
-        data_file = open("RSAKeys.txt")
-        block = ""
-        found = False
-
-        for line in data_file:
-            if found:
-                block += line
-                if line.strip() == "-----END PRIVATE KEY-----":
-                    break
-            else:
-                if line.strip() == "-----BEGIN PRIVATE KEY-----":
-                    found = True
-                    block = "-----BEGIN PRIVATE KEY-----\n"
-
-        data_file.close()
-        private_key_string = block
-
-        print ("private key\n---------\n" + str(private_key_string))
-        print("type private key" + str(type(private_key_string)))
-        print ("private key size" + str(len(private_key_string))  + "\n")
-
-        private_key = RSA.importKey(private_key_string)
-        print(private_key)
-        print("type key" + str(type(private_key)) + "\n")
-
-        raw_cipher_data = base64.b64decode(file_key)
-        print("type raw cipher" + str(type(raw_cipher_data)))
-        print ("size raw cipher" + str(len(raw_cipher_data)) + "\n")
-
-        decrypted = private_key.decrypt(raw_cipher_data)
-        print (decrypted)
-        print("type decrypted" + str(type(decrypted)))
-        print ("size decrypted" + str(len(decrypted)) + "\n")
-
-        # test_decrypted = private_key.decrypt(decrypted)
-        # print("type test decrypted" + str(type(test_decrypted)))
-        # print ("size test decrypted" + str(len(test_decrypted)) + "\n")
-
-        base64decrypted = base64.b64encode(decrypted)
-        print ("base64decrypted\n" + base64decrypted + "\n")
-
-        # test_base64decrypted = base64.b64encode(test_decrypted)
-        # print ("Test base64decrypted\n" + test_base64decrypted + "\n")
-
-        print ("success s")
-
-        # import pdb; pdb.set_trace()
-
-        # initial = 0
-        # with decrypted as f:
-        #
-        #     byte = f.read(1)
-        #     while byte != "":
-        #         # Do stuff with byte.
-        #         byte = f.read(1)
-
-        # return Response(data={"answer": base64decrypted})
-        return Response(status=status.HTTP_200_OK)
-
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', ])
-def test_rsa(request):
-    if request.method == 'GET':
-        file_obj = File.objects.get(file_name="file1.jpg")
-        file_key = file_obj.file_key
-
-        print("\nfile_key\n---------\n" + str(file_key))
-        print("type file key" + str(type(file_key)))
-        print ("file Key size" + str(len(file_key)) + "\n")
-
-        data_file = open("RSAKeys.txt")
-        priv_block = ""
-        pub_block = ""
-        found = False
-
-        for line in data_file:
-            if found:
-                pub_block += line
-                if line.strip() == "-----END PUBLIC KEY-----":
-                    break
-            else:
-                if line.strip() == "-----BEGIN PUBLIC KEY-----":
-                    found = True
-                    pub_block = "-----BEGIN PUBLIC KEY-----\n"
-
-        for line in data_file:
-            if found:
-                priv_block += line
-                if line.strip() == "-----END PRIVATE KEY-----":
-                    break
-            else:
-                if line.strip() == "-----BEGIN PRIVATE KEY-----":
-                    found = True
-                    priv_block = "-----BEGIN PRIVATE KEY-----\n"
-
-        data_file.close()
-        private_key_string = priv_block
-        public_ley_string = pub_block
-
-        print ("private key\n---------\n" + str(private_key_string))
-        print("type private key" + str(type(private_key_string)))
-        print ("private key size" + str(len(private_key_string)) + "\n")
-
-        print ("public key\n---------\n" + str(public_ley_string))
-        print("type public key" + str(type(public_ley_string)))
-        print ("public key size" + str(len(public_ley_string)) + "\n")
-
-        private_key = RSA.importKey(private_key_string)
-        print(private_key)
-        print("private type key" + str(type(private_key)) + "\n")
-
-        public_key = private_key.publickey()
-        print(public_key)
-        print("public type key" + str(type(public_key)) + "\n")
-
-        raw_cipher_data = base64.b64decode(file_key)
-        print("type raw cipher" + str(type(raw_cipher_data)))
-        print ("size raw cipher" + str(len(raw_cipher_data)) + "\n")
-
-        decrypted_string = private_key.decrypt(raw_cipher_data)
-        base64string = decrypted_string.encode('base64')
-        length = len(base64string)
-        print(base64string)
-        print (bytearray(base64string))
-        print (len(base64string))
-        print ("success s")
-
-        data = base64string[0:length-66]
-        sliced = base64string[length-66:length]
-        print (sliced)
-        print (data)
-
-        # datadecoded = base64.decode(data)
-        encoded = base64.b64decode(sliced)
-        print (len(encoded))
-
-        iv = encoded[:16].encode('base64')
-        heX = encoded[-32:].encode('base64')
-
-        print (iv)
-        print (heX)
-
-        # import pdb; pdb.set_trace()
-
-        # initial = 0
-        # with decrypted as f:
-        #
-        #     byte = f.read(1)
-        #     while byte != "":
-        #         # Do stuff with byte.
-        #         byte = f.read(1)
-
-        # return Response(data={"answer": base64decrypted})
-        return Response(data={"iv": iv, "hex": heX}, status=status.HTTP_200_OK)
-
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', ])
-def test_test(request):
-    if request.method == 'GET':
-
-        data_file = open("RSAKeys.txt")
-        priv_block = ""
-        pub_block = ""
-        found = False
-
-        for line in data_file:
-            if found:
-                pub_block += line
-                if line.strip() == "-----END PUBLIC KEY-----":
-                    break
-            else:
-                if line.strip() == "-----BEGIN PUBLIC KEY-----":
-                    found = True
-                    pub_block = "-----BEGIN PUBLIC KEY-----\n"
-
-        for line in data_file:
-            if found:
-                priv_block += line
-                if line.strip() == "-----END PRIVATE KEY-----":
-                    break
-            else:
-                if line.strip() == "-----BEGIN PRIVATE KEY-----":
-                    found = True
-                    priv_block = "-----BEGIN PRIVATE KEY-----\n"
-
-        data_file.close()
-        private_key_string = priv_block
-        public_ley_string = pub_block
-
-        print ("private key\n---------\n" + str(private_key_string))
-        print("type private key" + str(type(private_key_string)))
-        print ("private key size" + str(len(private_key_string)) + "\n")
-
-        print ("public key\n---------\n" + str(public_ley_string))
-        print("type public key" + str(type(public_ley_string)))
-        print ("public key size" + str(len(public_ley_string)) + "\n")
-
-        private_key = RSA.importKey(private_key_string)
-        print(private_key)
-        print("private type key" + str(type(private_key)) + "\n")
-
-        public_key = private_key.publickey()
-        print(public_key)
-        print("public type key" + str(type(public_key)) + "\n")
-
-        string = "This a test"
-
-        encrypted_string = public_key.encrypt(string.encode('base64'), 32)
-        print(encrypted_string)
-
-        decrypted_string = private_key.decrypt(encrypted_string)
-        print(decrypted_string.decode('base64'))
-
-        print ("success s")
-
-        # import pdb; pdb.set_trace()
-
-        # initial = 0
-        # with decrypted as f:
-        #
-        #     byte = f.read(1)
-        #     while byte != "":
-        #         # Do stuff with byte.
-        #         byte = f.read(1)
-
-        # return Response(data={"answer": base64decrypted})
-        return Response(status=status.HTTP_200_OK)
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)

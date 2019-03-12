@@ -1,0 +1,483 @@
+<html>
+<head></head>
+<body>
+<!--
+			Outlook Conditional CSS
+
+			These two style blocks target Outlook 2007 & 2010 specifically, forcing
+			columns into a single vertical stack as on mobile clients. This is
+			primarily done to avoid the 'page break bug' and is optional.
+
+			More information here:
+			http://templates.mailchimp.com/development/css/outlook-conditional-css
+		-->
+<!-- [if mso 12]>
+			<style type="text/css">
+				.flexibleContainer{display:block !important; width:100% !important;}
+			</style>
+		<![endif]-->
+<!-- [if mso 14]>
+			<style type="text/css">
+				.flexibleContainer{display:block !important; width:100% !important;}
+			</style>
+		<![endif]--><!-- CENTER THE EMAIL // -->
+<!--
+		1.  The center tag should normally put all the
+			content in the middle of the email page.
+			I added "table-layout: fixed;" style to force
+			yahoomail which by default put the content left.
+
+		2.  For hotmail and yahoomail, the contents of
+			the email starts from this center, so we try to
+			apply necessary styling e.g. background-color.
+		-->
+<center style="background-color: #e1e1e1;">
+<table id="bodyTable" style="table-layout: fixed; max-width: 100% !important; width: 100% !important; min-width: 100% !important;" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td id="bodyCell" align="center" valign="top"><!-- EMAIL HEADER // --> <!--
+							The table "emailBody" is the email's container.
+							Its width can be set to 100% for a color band
+							that spans the width of the page.
+						-->
+<table id="emailHeader" border="0" width="500" cellspacing="0" cellpadding="0" bgcolor="#E1E1E1"><!-- HEADER ROW // -->
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="10">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" valign="top" width="500"><!-- CONTENT TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0" align="left">
+<tbody>
+<tr><!--
+																		The "invisibleIntroduction" is the text used for short preview
+																		of the email before the user opens it (50 characters max). Sometimes,
+																		you do not want to show this message depending on your design but this
+																		text is highly recommended.
+
+																		You do not have to worry if it is hidden, the next <td> will automatically
+																		center and apply to the width 100% and also shrink to 50% if the first <td>
+																		is visible.
+																	-->
+<td id="invisibleIntroduction" class="flexibleContainerBox" style="display: none !important; mso-hide: all;" align="left" valign="middle">
+<table style="max-width: 100%;" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="textContent" align="left">
+<div style="font-family: Helvetica,Arial,sans-serif; font-size: 13px; color: #828282; text-align: center; line-height: 120%;">Please confirm your email address.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+<td class="flexibleContainerBox" align="right" valign="middle">
+<table style="max-width: 100%;" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="textContent" align="left"><!-- CONTENT // -->
+<div style="font-family: Helvetica,Arial,sans-serif; font-size: 13px; color: #828282; text-align: center; line-height: 120%;">If you can't see this message, <a style="text-decoration: none; border-bottom: 1px solid #828282; color: #828282;" href="#" target="_blank"><span style="color: #828282;">view&nbsp;it&nbsp;in&nbsp;your&nbsp;browser</span></a>.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // END --></tbody>
+</table>
+<!-- // END --> <!-- EMAIL BODY // --> <!--
+							The table "emailBody" is the email's container.
+							Its width can be set to 100% for a color band
+							that spans the width of the page.
+						-->
+<table id="emailBody" border="0" width="500" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF"><!-- MODULE ROW // --> <!--
+								To move or duplicate any of the design patterns
+								in this email, simply move or copy the entire
+								MODULE ROW section for each content block.
+							-->
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // --> <!--
+										The centering table keeps the content
+										tables centered in the emailBody table,
+										in case its width is set to 100%.
+									-->
+<table style="color: #ffffff;" border="0" width="100%" cellspacing="0" cellpadding="0" bgcolor="#3498db">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // --> <!--
+													The flexible container has a set width
+													that gets overridden by the media query.
+													Most content tables within can then be
+													given 100% widths.
+												-->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500"><!-- CONTENT TABLE // --> <!--
+															The content table is the first element
+																that's entirely separate from the structural
+																framework of the email.
+															-->
+<table border="0" width="100%" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+<td class="textContent" align="left" valign="bottom">
+<h3 style="color: #ffffff; line-height: 100%; font-family: Helvetica,Arial,sans-serif; font-size: 28px; font-weight: normal; margin-bottom: 5px; text-align: left;">Please confirm your email</h3>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // CONTENT TABLE --></td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // --> <!--  The "mc:hideable" is a feature for MailChimp which allows
+								you to disable certain row. It works perfectly for our row structure.
+								http://kb.mailchimp.com/article/template-language-creating-editable-content-areas/
+							-->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" valign="top" width="500"><!-- CONTENT TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0" align="left">
+<tbody>
+<tr>
+<td class="flexibleContainerBox" align="left" valign="top">
+<table style="max-width: 100%;" border="0" width="420" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="textContent" align="left">
+<h3 style="color: #5f5f5f; line-height: 125%; font-family: Helvetica,Arial,sans-serif; font-size: 15px; font-weight: normal; margin-top: 0; margin-bottom: 3px; text-align: left;">Hello there, </h3>
+<div style="text-align: left; font-family: Helvetica,Arial,sans-serif; font-size: 15px; margin-bottom: 0; color: #5f5f5f; line-height: 135%;">Your verification code is <span style="font-size: 20px"><strong>{{ verification_code }}</strong></span></div>
+    <div style="text-align: left; font-family: Helvetica,Arial,sans-serif; font-size: 15px; margin-bottom: 0; color: #5f5f5f; line-height: 135%;">Please key in the verification code in the mobile app.</div>
+
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+
+</tr>
+</tbody>
+</table>
+<!-- // CONTENT TABLE --></td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="padding-top: 0;">
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" style="padding-top: 0;" align="center" valign="top" width="500"><!-- CONTENT TABLE // -->
+<table class="emailButton" style="background-color: #3498db;" border="0" width="50%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+    <!--
+<td class="buttonContent" style="padding: 15px;" align="center" valign="middle"><a style="color: #ffffff; text-decoration: none; font-family: Helvetica,Arial,sans-serif; font-size: 20px; line-height: 135%;" href="#" target="_blank">Confirmation</a></td>
+    -->
+</tr>
+</tbody>
+</table>
+<!-- // CONTENT TABLE --></td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0" bgcolor="#F8F8F8">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500">
+
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500">
+<table border="0" width="100%" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500">
+<table class="flexibleContainerCellDivider" border="0" width="100%" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // END --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500">
+<table class="flexibleContainerCellDivider" border="0" width="100%" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // END --> <!-- MODULE ROW // -->
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+
+<!-- // END --> <!-- MODULE ROW // -->
+
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+
+<!-- // END --> <!-- MODULE ROW // -->
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+
+<!-- // END --> <!-- MODULE ROW // -->
+
+<!-- // MODULE ROW --> <!-- MODULE DIVIDER // -->
+
+<!-- // END --> <!-- MODULE ROW // -->
+<tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+<tr>
+<!-- // MODULE ROW --> <!-- MODULE ROW // -->
+
+<!-- // MODULE ROW --></tbody>
+</table>
+<!-- // END --> <!-- EMAIL FOOTER // --> <!--
+							The table "emailBody" is the email's container.
+							Its width can be set to 100% for a color band
+							that spans the width of the page.
+						-->
+<table id="emailFooter" border="0" width="500" cellspacing="0" cellpadding="0" bgcolor="#E1E1E1"><!-- FOOTER ROW // --> <!--
+								To move or duplicate any of the design patterns
+								in this email, simply move or copy the entire
+								MODULE ROW section for each content block.
+							-->
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- CENTERING TABLE // -->
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td align="center" valign="top"><!-- FLEXIBLE CONTAINER // -->
+<table class="flexibleContainer" border="0" width="500" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="flexibleContainerCell" align="center" valign="top" width="500">
+<table border="0" width="100%" cellspacing="0" cellpadding="30">
+<tbody>
+<tr>
+<td valign="top" bgcolor="#E1E1E1">
+<div style="font-family: Helvetica,Arial,sans-serif; font-size: 13px; color: #828282; text-align: center; line-height: 120%;">
+<div>Copyright &copy; 2014 <a style="text-decoration: none; color: #828282;" href="http://www.charlesmudy.com/respmail/" target="_blank"><span style="color: #828282;">KaiChat Pte Ltd</span></a>. All&nbsp;rights&nbsp;reserved.</div>
+<div>If you do not want to receive emails from us, you can <a style="text-decoration: none; color: #828282;" href="#" target="_blank"><span style="color: #828282;">unsubscribe</span></a>.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- // FLEXIBLE CONTAINER --></td>
+</tr>
+</tbody>
+</table>
+<!-- // CENTERING TABLE --></td>
+</tr>
+</tbody>
+</table>
+<!-- // END --></td>
+</tr>
+</tbody>
+</table>
+</center>
+</body>
+</html>

@@ -17,6 +17,9 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^keys/', include('keys.urls', namespace="keys")),
+    # url(r'^key_sec/', include('key_security.urls', namespace="key_security")),
+    # url(r'^keys/', include('keys.urls', namespace="keys")),
+    # url(r'^users/', include('auth_user.urls', namespace="auth_user")),
+    url(r'^test/', include('test_protocol.urls', namespace="test_protocol")),
     url(r'^admin/', admin.site.urls),
 ]

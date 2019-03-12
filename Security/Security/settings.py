@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.0.197', '192.168.0.197:8000', '192.168.1.112', '192.168.1.112:8000', '127.0.0.1', '127.0.0.1:8000']
 
+# AUTH_USER_MODEL = 'auth_user.MyUser'
+# SOCIAL_AUTH_USER_MODEL = 'auth_user.MyUser'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -36,11 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'keys',
+    # 'key_security',
+    # 'keys',
+    # 'auth_user',
+    'test_protocol',
     'rest_framework',
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,6 +54,20 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'audiofield.middleware.threadlocals.ThreadLocals',
+    # 'corsheaders.middleware.CorsMiddleware',
+    # 'magstreet_abstract.disallowed_hosts.DisallowedHostMiddleware',
+    # 'message.middleware.proxy_middleware.MultipleProxyMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.security.SecurityMiddleware',
+    # 'audiofield.middleware.threadlocals.ThreadLocals',
 ]
 
 ROOT_URLCONF = 'Security.urls'
