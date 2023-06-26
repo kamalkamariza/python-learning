@@ -22,25 +22,26 @@ MIN_HASH_FUNCTIONS = 100
 # print(data.head())
 # sentences = data['sentence_A'].tolist()[:2]
 
-user_a = json.loads(json.loads(open('./ocr_files/536435_260486.txt', 'r').read())).get('fullTextAnnotation').get('text').replace('\n', ' ')
-user_b = json.loads(json.loads(open('./ocr_files/536450_260492.txt', 'r').read())).get('fullTextAnnotation').get('text').replace('\n', ' ')
-user_c = json.loads(open('./ocr_files/500376_246922.txt', 'r').read()).get('fullTextAnnotation').get('text').replace('\n', ' ')
+user_a_1 = json.loads(json.loads(open('./ocr_files/536435_260486.txt', 'r').read())).get('fullTextAnnotation').get('text').replace('\n', ' ')
+user_a_2 = json.loads(json.loads(open('./ocr_files/536450_260492.txt', 'r').read())).get('fullTextAnnotation').get('text').replace('\n', ' ')
+user_b = json.loads(open('./ocr_files/500376_246922.txt', 'r').read()).get('fullTextAnnotation').get('text').replace('\n', ' ')
 
-print(user_a)
+print(user_a_1)
+print(user_a_2)
 print(user_b)
 
-sentences = [user_b, user_c]
-print(sentences)
+sentences = [user_a_1, user_a_2, user_b]
+# print(sentences)
 
 # build shingles
 shingles = []
 for sentence in sentences:
     shingles.append(build_shingles(sentence, SHINGLE_SIZE))
-print(shingles)
+# print(shingles)
 
 # build vocab
 vocab = build_vocab(shingles)
-print(vocab)
+# print(vocab)
 
 # one-hot encode our shingles
 shingles_1hot = []
@@ -71,7 +72,7 @@ for signature in signatures:
 # print(lsh.buckets)
 
 candidate_pairs = lsh.check_candidates()
-print(len(candidate_pairs))
+print(candidate_pairs,len(candidate_pairs))
 print(jaccard(set(signatures[0]), set(signatures[1])))
 print(cosine_similarity([signatures[0]], [signatures[1]])[0][0])
 
