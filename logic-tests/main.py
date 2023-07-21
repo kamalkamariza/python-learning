@@ -1,6 +1,7 @@
 
 import io 
 import json
+import pandas as pd
 from enum import Enum
 
 def json_test():
@@ -28,6 +29,15 @@ def dict_test():
     }
 
     print([{k:len(a[k])} for k in a.keys()])
-    
+
+def file_test():
+    with open('texts/long_list_text.txt', 'r') as f:
+        texts = f.read().split('\n')
+
+    texts_df = pd.read_csv('texts/long_list_csv.csv')
+
+    print(texts[1:6])
+    print(texts_df[0:5])
+
 if __name__ == "__main__":
-    json_test()
+    file_test()
