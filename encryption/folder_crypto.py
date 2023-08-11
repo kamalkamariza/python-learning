@@ -9,7 +9,8 @@ import getpass
 import base64 
 import numpy as np
 import csv
-from io import StringIO
+from io import StringIO, BytesIO
+from PIL import Image
 
 gpg = gnupg.GPG()
 PASS_KEY = None
@@ -72,7 +73,7 @@ def decrypt_file(file, store_locally=False):
     elif real_file.endswith(('jpg', 'png', 'jpeg')):
         arr = np.frombuffer(decrypted_data, dtype=np.uint8)
         img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-        return img
+        return BytesIO(decrypted_data)
         # print(img.shape)
         # cv2.imshow('test', img)
         # cv2.waitKey(0)
@@ -105,5 +106,7 @@ def decrypt_folder(folder):
 if __name__ == '__main__':
     # encrypt_folder('folder_to_encrypt')
     # encrypt_folder('./folder_to_encrypt')
-    decrypt_folder('./folder_to_encrypt')
+    # decrypt_folder('./folder_to_encrypt')
+    decrypted_data = decrypt_file('./folder_to_encrypt/test.csv.encrypted')
+    print(decrypted_data)
     

@@ -2,7 +2,10 @@
 import io 
 import json
 import pandas as pd
+import re
+import os
 from enum import Enum
+from datetime import datetime
 
 def json_test():
     file_byte = io.BytesIO(open('images/502653_247778.txt', 'rb').read()).read()
@@ -39,5 +42,73 @@ def file_test():
     print(texts[1:6])
     print(texts_df[0:5])
 
+def datetime_test():
+    from datetime import datetime
+
+    dt_string = "2023-07-27 10:50:15"
+    print(dt_string)
+
+    dt_obj = datetime.strptime(dt_string, '%Y-%m-%d %H:%M:%S')
+
+    dt_ts = int(dt_obj.timestamp()*1000)
+    gt_ts = 1671607395595
+
+    print(len(str(gt_ts)), len(str(dt_ts)), gt_ts >= dt_ts)
+
+def update_dob_current_file(path):
+    df = pd.read_csv(path)
+    df.fillna("", inplace=True)
+
+    for idx, row in df.iterrows():
+        national_id = row['national_id']
+        date_of_birth = row.get("date_of_birth")
+        dob_str = ""
+        if not date_of_birth and national_id and re.search(r'^\d{6}-?\d{2}-?\d{4}$', national_id):
+            dob = national_id[0:6]
+            try:
+                dob_str = datetime.strptime(dob, '%y%m%d').strftime('%Y-%m-%d')
+            except:
+                dob_str = "0000-00-00"
+        
+        elif not date_of_birth and national_id:
+            dob_str = "0000-00-00"
+
+        df.at[idx, 'date_of_birth'] = dob_str
+
+    df.to_csv(os.path.join('./', os.path.basename(path)), index=False)
+
+def regex_test():
+    state = 'bandar sri permaisuri'
+    address = 'bandar lahad sri selangor permaisuri'
+    state_words = state.split()
+    regex_expression = 1
+    # pattern = re.compile(regex_expression)
+    match = re.match(r'{}'.format(r'.*'.join(state_words)),address)
+
+    print(state)
+    print(address)
+    print(regex_expression)
+    print(match)
+
+def regex_test2():
+    state = 'MASJID TANAH'
+    address = 'BATU 23 KAMPUNG 78300 MELAKA MASJID TANJUNG TANAH BIDARA'
+    expr = r'MASJID.*TANAH'
+    match = re.search(expr, address)
+    print(match)
+    print(address)
+    print(expr)
+
+def list_test():
+    a = [
+        {'class': 1, 'confidence': 0.9, 'text':'test1'},
+        {'class': 2, 'confidence': 0.2, 'text':'test2'},
+        {'class': 3, 'confidence': 0.4, 'text':'test3'},
+        {'class': 4, 'confidence': 0.6, 'text':'test4'},
+    ]
+
+    b = [{dict['class']:{"confidence":dict['confidence'], "text":dict["text"]}} for dict in a]
+    print(b)
+
 if __name__ == "__main__":
-    file_test()
+    list_test()
