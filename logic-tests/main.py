@@ -6,6 +6,7 @@ import re
 import os
 from enum import Enum
 from datetime import datetime
+import imghdr
 
 def json_test():
     file_byte = io.BytesIO(open('images/502653_247778.txt', 'rb').read()).read()
@@ -110,5 +111,16 @@ def list_test():
     b = [{dict['class']:{"confidence":dict['confidence'], "text":dict["text"]}} for dict in a]
     print(b)
 
+def test_filename_extension():
+    path = 'images/502653_247778.jpg'
+    bytes = open(path, 'rb')
+    print(imghdr.what(bytes))
+
+    a = "filename.jpg"
+    b = os.path.splitext(a)
+    print(b)
+    new_filename = b[0] + ".txt"
+    print(new_filename)
+
 if __name__ == "__main__":
-    list_test()
+    test_filename_extension()
