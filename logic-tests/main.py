@@ -26,13 +26,24 @@ def enum_test():
     print(Color['RED'].value)
 
 def dict_test():
-    a = {
-        'key1': [1,2,3,4,5],
-        'key2': [1,2,3],
-        'key3': [1]
-    }
+    def comprehension_test():
+        a = {
+            'key1': [1,2,3,4,5],
+            'key2': [1,2,3],
+            'key3': [1]
+        }
 
-    print([{k:len(a[k])} for k in a.keys()])
+        print([{k:len(a[k])} for k in a.keys()])
+
+    def concatenate_test():
+        a = {"name": "test"}
+        b = {"age": 12}
+        c = {**a, **b}
+        print(a)
+        print(b)
+        print(c)
+
+    concatenate_test()
 
 def file_test():
     with open('texts/long_list_text.txt', 'r') as f:
@@ -92,12 +103,10 @@ def regex_test():
     print(match)
 
 def regex_test2():
-    state = 'MASJID TANAH'
-    address = 'BATU 23 KAMPUNG 78300 MELAKA MASJID TANJUNG TANAH BIDARA'
-    expr = r'MASJID.*TANAH'
-    match = re.search(expr, address)
+    number = '5492 981 5243'
+    expr = r'\b\d{3,4}\s\d{3,4}\s\d{3,4}\b'
+    match = re.search(expr, number)
     print(match)
-    print(address)
     print(expr)
 
 def list_test():
@@ -123,4 +132,4 @@ def test_filename_extension():
     print(new_filename)
 
 if __name__ == "__main__":
-    test_filename_extension()
+    dict_test()
